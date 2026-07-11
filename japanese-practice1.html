@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日文自學練習 - Step1~5</title>
+<style>
+  :root{
+    --bg:#f7f4ee;
+    --card:#ffffff;
+    --ink:#2e2a25;
+    --sub:#7a7266;
+    --accent:#c0504d;
+    --accent2:#4a7c6f;
+    --line:#e6ded2;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Hiragino Sans","Noto Sans TC","PingFang TC",sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    padding:24px;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+  h1{font-size:1.4rem;margin:0 0 4px;}
+  .topic{font-size:1.05rem;font-weight:600;color:var(--accent);margin-bottom:8px;}
+  .date-range{
+    display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+    font-size:0.85rem;color:var(--sub);margin-bottom:12px;
+  }
+  .date-range input[type=date]{
+    padding:5px 8px;border:1px solid var(--line);border-radius:8px;
+    font-family:inherit;font-size:0.85rem;color:var(--ink);background:var(--card);
+  }
+  .sub{color:var(--sub);font-size:0.9rem;margin-bottom:20px;}
+  .tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+  .tab-btn{
+    flex:1;min-width:100px;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    background:var(--card);
+    border-radius:10px;
+    cursor:pointer;
+    font-size:0.9rem;
+    color:var(--sub);
+  }
+  .tab-btn.active{
+    background:var(--accent);
+    color:#fff;
+    border-color:var(--accent);
+  }
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  /* Step status */
+  .progress-bar{
+    height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:16px;
+  }
+  .progress-fill{
+    height:100%;background:var(--accent2);width:0%;transition:width .3s;
+  }
+  .step-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 16px;
+    margin-bottom:10px;
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+  }
+  .step-card.done{opacity:0.55;}
+  .step-card input[type=checkbox]{
+    margin-top:4px;width:18px;height:18px;flex-shrink:0;accent-color:var(--accent2);
+  }
+  .step-title{font-weight:600;margin-bottom:4px;}
+  .step-tag{
+    display:inline-block;font-size:0.72rem;padding:1px 8px;border-radius:20px;
+    background:var(--line);color:var(--sub);margin-left:6px;
+  }
+  .step-desc{font-size:0.85rem;color:var(--sub);line-height:1.5;}
+  .note{
+    font-size:0.8rem;color:var(--sub);margin-top:14px;padding:10px 14px;
+    background:#fbf7ee;border-left:3px solid var(--accent);border-radius:4px;
+  }
+
+  /* Flashcards */
+  .flash-controls{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:0.85rem;color:var(--sub);}
+  .flash-controls button{
+    border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:0.8rem;
+  }
+  .card-stage{perspective:1200px;height:260px;margin-bottom:16px;}
+  .flashcard{
+    width:100%;height:100%;position:relative;transform-style:preserve-3d;
+    transition:transform .5s;cursor:pointer;
+  }
+  .flashcard.flipped{transform:rotateY(180deg);}
+  .face{
+    position:absolute;inset:0;
+    backface-visibility:hidden;
+    border-radius:16px;
+    border:1px solid var(--line);
+    display:flex;flex-direction:column;justify-content:center;align-items:center;
+    padding:24px;text-align:center;
+    background:var(--card);
+  }
+  .face.front .word{font-size:1.9rem;font-weight:700;margin-bottom:8px;}
+  .face.front .kana{font-size:1.1rem;color:var(--sub);}
+  .face.back{transform:rotateY(180deg);background:#fbf7ee;}
+  .face.back .meaning{font-size:1.15rem;font-weight:600;margin-bottom:10px;}
+  .face.back .example{font-size:0.9rem;color:var(--ink);line-height:1.6;}
+  .face.back .example .reading{color:var(--sub);font-size:0.82rem;display:block;}
+  .nav-row{display:flex;gap:10px;}
+  .nav-row button{
+    flex:1;padding:10px;border-radius:10px;border:1px solid var(--line);
+    background:var(--card);cursor:pointer;font-size:0.9rem;
+  }
+  .nav-row button.primary{background:var(--accent2);color:#fff;border-color:var(--accent2);}
+  .hint{text-align:center;font-size:0.78rem;color:var(--sub);margin-top:8px;}
+
+  /* Videos */
+  .video-item{
+    background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;
+  }
+  .video-item a{color:var(--ink);text-decoration:none;font-size:0.92rem;font-weight:500;}
+  .video-item a:hover{color:var(--accent);}
+  .del-btn{
+    border:none;background:none;color:var(--sub);cursor:pointer;font-size:1.1rem;line-height:1;padding:4px 8px;
+  }
+  .del-btn:hover{color:var(--accent);}
+  .add-form{
+    display:flex;flex-direction:column;gap:8px;background:var(--card);
+    border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px;
+  }
+  .add-form input{
+    padding:9px 10px;border:1px solid var(--line);border-radius:8px;font-size:0.9rem;font-family:inherit;
+  }
+  .add-form button{
+    padding:9px;border:none;border-radius:8px;background:var(--accent2);color:#fff;cursor:pointer;font-size:0.9rem;
+  }
+  .empty{color:var(--sub);font-size:0.85rem;text-align:center;padding:20px 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>日文自學練習</h1>
+  <div class="topic">主題一 - 育兒</div>
+  <div class="date-range">
+    <span>期間：</span>
+    <input type="date" id="dateStart">
+    <span>～</span>
+    <input type="date" id="dateEnd">
+  </div>
+  <div class="sub">Step1 詞彙 → Step2 寫作 → Step3 聽力 → Step4 發音 → Step5 口說</div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="status">任務狀態</button>
+    <button class="tab-btn" data-tab="flash">單字閃卡</button>
+    <button class="tab-btn" data-tab="video">聽力影片</button>
+  </div>
+
+  <!-- STATUS PANEL -->
+  <div class="panel active" id="panel-status">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div id="stepList"></div>
+    <div class="note">不用死守 Step1~5 順序，可以循環回到第一步，也可以中間休息幾天。重要的是「持續」而不是單次學習時長。</div>
+  </div>
+
+  <!-- FLASHCARD PANEL -->
+  <div class="panel" id="panel-flash">
+    <div class="flash-controls">
+      <span id="cardCount">1 / 10</span>
+      <button id="shuffleBtn">🔀 重新隨機排序</button>
+    </div>
+    <div class="card-stage">
+      <div class="flashcard" id="flashcard">
+        <div class="face front">
+          <div class="word" id="cardWord"></div>
+          <div class="kana" id="cardKana"></div>
+        </div>
+        <div class="face back">
+          <div class="meaning" id="cardMeaning"></div>
+          <div class="example" id="cardExample"></div>
+        </div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button id="prevBtn">← 上一張</button>
+      <button id="flipBtn" class="primary">翻卡</button>
+      <button id="nextBtn">下一張 →</button>
+    </div>
+    <div class="hint">點擊卡片也可以翻面。每次打開頁面順序會重新隨機。</div>
+  </div>
+
+  <!-- VIDEO PANEL -->
+  <div class="panel" id="panel-video">
+    <div class="add-form">
+      <input type="text" id="videoTitle" placeholder="影片標題">
+      <input type="text" id="videoUrl" placeholder="影片連結 (https://...)">
+      <button id="addVideoBtn">新增影片</button>
+    </div>
+    <div id="videoList"></div>
+  </div>
+
+</div>
+
+<script>
+/* ---------- Tabs ---------- */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ---------- Date range ---------- */
+const dateStart = document.getElementById('dateStart');
+const dateEnd = document.getElementById('dateEnd');
+dateStart.value = localStorage.getItem('jpDateStart') || '';
+dateEnd.value = localStorage.getItem('jpDateEnd') || '';
+dateStart.addEventListener('change', ()=> localStorage.setItem('jpDateStart', dateStart.value));
+dateEnd.addEventListener('change', ()=> localStorage.setItem('jpDateEnd', dateEnd.value));
+
+/* ---------- Step status ---------- */
+const steps = [
+  {id:'step1', title:'Step1・詞彙（輸入）', desc:'選本週主題，挑10個相關單字/表達，做單字卡（正面單字、背面意思，可加圖片），時間充裕再背誦，15分鐘用完可跳過。'},
+  {id:'step2', title:'Step2・寫作（輸出）', desc:'複習單字卡5分鐘暖腦，用這些單字造句/寫一小段文字，盡量多用到本週單字；大聲唸出來校對，或請AI潤飾成更自然的日語。'},
+  {id:'step3', title:'Step3・聽力（輸入）', desc:'找主題相關的YouTube影片或Podcast，邊聽邊記筆記寫下聽不懂的詞（長影片可只聽3分鐘），反覆聽並對照筆記確認意思。'},
+  {id:'step4', title:'Step4・發音（輸出）', desc:'用Step3聽的影片做「跟讀練習」(shadowing)：邊聽邊立刻模仿語速、語調、發音，像影子一樣緊跟音檔。'},
+  {id:'step5', title:'Step5・口說（輸出）', desc:'準備約1分鐘「演講」延續本週主題，可潤飾Step2句子並加入Step3、4所學，對著鏡子大聲練習、注意語調有感情；錄音回放檢查進步。'}
+];
+
+function loadStatus(){
+  try{ return JSON.parse(localStorage.getItem('jpStepStatus')) || {}; }catch(e){ return {}; }
+}
+function saveStatus(s){ localStorage.setItem('jpStepStatus', JSON.stringify(s)); }
+
+function renderSteps(){
+  const status = loadStatus();
+  const list = document.getElementById('stepList');
+  list.innerHTML = '';
+  let doneCount = 0;
+  steps.forEach(step=>{
+    const isDone = !!status[step.id];
+    if(isDone) doneCount++;
+    const card = document.createElement('div');
+    card.className = 'step-card' + (isDone ? ' done' : '');
+    card.innerHTML = `
+      <input type="checkbox" ${isDone ? 'checked' : ''} data-id="${step.id}">
+      <div>
+        <div class="step-title">${step.title}${isDone ? '<span class="step-tag">已完成</span>' : ''}</div>
+        <div class="step-desc">${step.desc}</div>
+      </div>`;
+    card.querySelector('input').addEventListener('change', (e)=>{
+      const s = loadStatus();
+      s[step.id] = e.target.checked;
+      saveStatus(s);
+      renderSteps();
+    });
+    list.appendChild(card);
+  });
+  document.getElementById('progressFill').style.width = (doneCount/steps.length*100) + '%';
+}
+renderSteps();
+
+/* ---------- Flashcards ---------- */
+const vocab = [
+  {word:'育児', kana:'いくじ', meaning:'育兒、養育孩子', example:'夫と協力して育児をします。', reading:'おっとと きょうりょくして いくじを します。 - 和先生共同分擔育兒。'},
+  {word:'見守る', kana:'みまもる', meaning:'在旁守護、靜靜觀察（不插手干預）', example:'子供の成長を温かく見守ります。', reading:'こどもの せいちょうを あたたかく みまもります。 - 溫暖地守護孩子的成長。'},
+  {word:'自立', kana:'じりつ', meaning:'獨立、自立', example:'子供の自立をサポートします。', reading:'こどもの じりつを さぽーと します。 - 協助孩子獨立。'},
+  {word:'選択', kana:'せんたく', meaning:'選擇（給予孩子選擇權）', example:'子供に選択させます。', reading:'こどもに せんたく させます。 - 讓孩子自己做選擇。'},
+  {word:'イヤイヤ期', kana:'いやいやき', meaning:'不要不要期、反抗期（常見於兩歲左右）', example:'今はイヤイヤ期で大変です。', reading:'いまは いやいやきで たいへんです。 - 現在是不要不要期，非常辛苦。'},
+  {word:'絵本', kana:'えほん', meaning:'繪本、童書', example:'毎日絵本を読みます。', reading:'まいにち えほんを よみます。 - 每天讀繪本。'},
+  {word:'読み聞かせ', kana:'よみきかせ', meaning:'唸（故事、繪本）給孩子聽', example:'寝る前に読み聞かせをします。', reading:'ねるまえに よみきかせを します。 - 睡前唸故事給孩子聽。'},
+  {word:'寄り添う', kana:'よりそう', meaning:'陪伴、貼近（情感上的同理與支持）', example:'子供の気持ちに寄り添います。', reading:'こどもの きもちに よりそいます。 - 貼近／同理孩子的心情。'},
+  {word:'成長', kana:'せいちょう', meaning:'成長', example:'日々の成長が嬉しいです。', reading:'ひびの せいちょうが うれしいです。 - 為每天的成長感到開心。'},
+  {word:'寝かしつけ', kana:'ねかしつけ', meaning:'哄睡', example:'寝かしつけに時間がかかります。', reading:'ねかしつけに じかんが かかります。 - 哄睡需要花一點時間。'}
+];
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+let order = shuffle(vocab.map((_,i)=>i));
+let cur = 0;
+
+function renderCard(){
+  const v = vocab[order[cur]];
+  document.getElementById('cardWord').textContent = v.word;
+  document.getElementById('cardKana').textContent = v.kana;
+  document.getElementById('cardMeaning').textContent = v.meaning;
+  document.getElementById('cardExample').innerHTML = v.example + '<span class="reading">' + v.reading + '</span>';
+  document.getElementById('cardCount').textContent = (cur+1) + ' / ' + vocab.length;
+  document.getElementById('flashcard').classList.remove('flipped');
+}
+renderCard();
+
+document.getElementById('flashcard').addEventListener('click', ()=>{
+  document.getElementById('flashcard').classList.toggle('flipped');
+});
+document.getElementById('flipBtn').addEventListener('click', ()=>{
+  document.getElementById('flashcard').classList.toggle('flipped');
+});
+document.getElementById('nextBtn').addEventListener('click', ()=>{
+  cur = (cur+1) % order.length;
+  renderCard();
+});
+document.getElementById('prevBtn').addEventListener('click', ()=>{
+  cur = (cur-1+order.length) % order.length;
+  renderCard();
+});
+document.getElementById('shuffleBtn').addEventListener('click', ()=>{
+  order = shuffle(vocab.map((_,i)=>i));
+  cur = 0;
+  renderCard();
+});
+
+/* ---------- Videos ---------- */
+const defaultVideos = [
+  {title:'２歳児のココロの理解～イヤイヤ期を乗り切るために～', url:'http://www.youtube.com/watch?v=7-iL9SsnaFI'},
+  {title:'【公式】「イヤイヤ期は 実験と観察で乗り越える～！？」（6月19日放送）', url:'http://www.youtube.com/watch?v=xzfepZoNjBM'},
+  {title:'【公式】「イヤイヤ期は 赤ちゃんのチャレンジ～!?」（3月22日放送）', url:'http://www.youtube.com/watch?v=C7pTzhvZtqA'}
+];
+
+function loadVideos(){
+  const raw = localStorage.getItem('jpVideos');
+  if(raw === null){
+    localStorage.setItem('jpVideos', JSON.stringify(defaultVideos));
+    return defaultVideos.slice();
+  }
+  try{ return JSON.parse(raw) || []; }catch(e){ return []; }
+}
+function saveVideos(v){ localStorage.setItem('jpVideos', JSON.stringify(v)); }
+
+function renderVideos(){
+  const videos = loadVideos();
+  const list = document.getElementById('videoList');
+  list.innerHTML = '';
+  if(videos.length === 0){
+    list.innerHTML = '<div class="empty">目前沒有影片，新增一個開始吧。</div>';
+    return;
+  }
+  videos.forEach((v, idx)=>{
+    const item = document.createElement('div');
+    item.className = 'video-item';
+    item.innerHTML = `
+      <a href="${v.url}" target="_blank" rel="noopener">${v.title}</a>
+      <button class="del-btn" data-idx="${idx}" title="刪除">✕</button>`;
+    item.querySelector('.del-btn').addEventListener('click', ()=>{
+      const vs = loadVideos();
+      vs.splice(idx,1);
+      saveVideos(vs);
+      renderVideos();
+    });
+    list.appendChild(item);
+  });
+}
+renderVideos();
+
+document.getElementById('addVideoBtn').addEventListener('click', ()=>{
+  const titleInput = document.getElementById('videoTitle');
+  const urlInput = document.getElementById('videoUrl');
+  const title = titleInput.value.trim();
+  const url = urlInput.value.trim();
+  if(!title || !url) return;
+  const vs = loadVideos();
+  vs.push({title, url});
+  saveVideos(vs);
+  titleInput.value = '';
+  urlInput.value = '';
+  renderVideos();
+});
+</script>
+</body>
+</html>
