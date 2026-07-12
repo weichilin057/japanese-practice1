@@ -90,7 +90,7 @@
   .flash-controls button{
     border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:0.8rem;
   }
-  .card-stage{perspective:1200px;height:260px;margin-bottom:16px;}
+  .card-stage{perspective:1200px;height:360px;margin-bottom:16px;}
   .flashcard{
     width:100%;height:100%;position:relative;transform-style:preserve-3d;
     transition:transform .5s;cursor:pointer;
@@ -104,13 +104,22 @@
     display:flex;flex-direction:column;justify-content:center;align-items:center;
     padding:24px;text-align:center;
     background:var(--card);
+    overflow-y:auto;
   }
   .face.front .word{font-size:1.9rem;font-weight:700;margin-bottom:8px;}
   .face.front .kana{font-size:1.1rem;color:var(--sub);}
-  .face.back{transform:rotateY(180deg);background:#fbf7ee;}
+  .face.back{transform:rotateY(180deg);background:#fbf7ee;justify-content:flex-start;}
   .face.back .meaning{font-size:1.15rem;font-weight:600;margin-bottom:10px;}
   .face.back .example{font-size:0.9rem;color:var(--ink);line-height:1.6;}
   .face.back .example .reading{color:var(--sub);font-size:0.82rem;display:block;}
+  .user-sentence-box{width:100%;margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);}
+  .user-sentence-box label{
+    display:block;font-size:0.78rem;color:var(--sub);margin-bottom:6px;text-align:left;
+  }
+  .user-sentence-box textarea{
+    width:100%;min-height:56px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;
+    font-family:inherit;font-size:0.88rem;color:var(--ink);resize:vertical;background:#fff;
+  }
   .nav-row{display:flex;gap:10px;}
   .nav-row button{
     flex:1;padding:10px;border-radius:10px;border:1px solid var(--line);
@@ -183,6 +192,10 @@
         <div class="face back">
           <div class="meaning" id="cardMeaning"></div>
           <div class="example" id="cardExample"></div>
+          <div class="user-sentence-box">
+            <label>我的造句（Step2，之後再填）：</label>
+            <textarea id="cardUserSentence" rows="2" placeholder="之後可以打上自己造的句子..."></textarea>
+          </div>
         </div>
       </div>
     </div>
@@ -293,6 +306,11 @@ function shuffle(arr){
 let order = shuffle(vocab.map((_,i)=>i));
 let cur = 0;
 
+function loadUserSentences(){
+  try{ return JSON.parse(localStorage.getItem('jpUserSentences')) || {}; }catch(e){ return {}; }
+}
+function saveUserSentences(s){ localStorage.setItem('jpUserSentences', JSON.stringify(s)); }
+
 function renderCard(){
   const v = vocab[order[cur]];
   document.getElementById('cardWord').textContent = v.word;
@@ -301,11 +319,21 @@ function renderCard(){
   document.getElementById('cardExample').innerHTML = v.example + '<span class="reading">' + v.reading + '</span>';
   document.getElementById('cardCount').textContent = (cur+1) + ' / ' + vocab.length;
   document.getElementById('flashcard').classList.remove('flipped');
+  const sentences = loadUserSentences();
+  document.getElementById('cardUserSentence').value = sentences[v.word] || '';
 }
 renderCard();
 
 document.getElementById('flashcard').addEventListener('click', ()=>{
   document.getElementById('flashcard').classList.toggle('flipped');
+});
+const userSentenceEl = document.getElementById('cardUserSentence');
+userSentenceEl.addEventListener('click', (e)=> e.stopPropagation());
+userSentenceEl.addEventListener('input', (e)=>{
+  const v = vocab[order[cur]];
+  const sentences = loadUserSentences();
+  sentences[v.word] = e.target.value;
+  saveUserSentences(sentences);
 });
 document.getElementById('flipBtn').addEventListener('click', ()=>{
   document.getElementById('flashcard').classList.toggle('flipped');
